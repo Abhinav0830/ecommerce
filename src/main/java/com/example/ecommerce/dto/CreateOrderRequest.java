@@ -1,23 +1,17 @@
 package com.example.ecommerce.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class CreateProductRequest {
+@NoArgsConstructor
+public class CreateOrderRequest {
 
-
-    private String name;
-
-    private double price;
-
-    private int availableQuantity;
-
-    private String category;
+    private List<OrderItemRequest> items;
 }

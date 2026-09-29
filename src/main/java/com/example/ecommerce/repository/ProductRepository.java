@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+//import java.lang.ScopedValue;
+
 public interface ProductRepository extends JpaRepository<Product,Long> {
 
     @Query("SELECT p FROM Product p WHERE p.tenant.name = :tenantName " +
@@ -18,4 +20,5 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
                                          Pageable pageable);
 
 
+    Product findByIdAndTenantName(Long id, String cleanTenantName);
 }

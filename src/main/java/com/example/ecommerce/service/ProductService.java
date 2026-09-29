@@ -1,7 +1,9 @@
 package com.example.ecommerce.service;
 
 import com.example.ecommerce.dto.CreateProductRequest;
+import com.example.ecommerce.dto.GetProductRequest;
 import com.example.ecommerce.dto.ProductResponse;
+import com.example.ecommerce.dto.UpdateProductRequest;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.Tenant;
 import com.example.ecommerce.repository.ProductRepository;
@@ -31,7 +33,7 @@ public class ProductService {
         Product product = new Product();
         product.setName(request.getName());
         product.setCategory(request.getCategory());
-        product.setAvailableQuantity(request.getAvailabaleQuantity());
+        product.setAvailableQuantity(request.getAvailableQuantity());
         product.setPrice(request.getPrice());
         product.setTenant(tenant);
 
@@ -41,18 +43,18 @@ public class ProductService {
 
     @Transactional
     public Page<ProductResponse> getProducts(String tenantName,
-                                             String category,
-                                             String search,
-                                             int page,
-                                             int size,
-                                             String sortBy,
-                                             String dir) {
+                                             GetProductRequest request) {
 
-        Sort sort = dir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        int page = (request.getPage()<0)?0: request.getPage();
+        int size = (request.getSize()<=0) ? 0 : request.getSize();
+
+        String sortBy = (request.getSortBy() == null || request.getSortBy().trim().isEmpty() ? "id" : request.getSortBy());
+        String sortDir = (request.getSortDir() == null || request.getSortDir().trim().isEmpty() ? "asc" : request.getSortDir());
+        Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page,size,sort);
 
-        String categoryFilter = (category !=null && !category.trim().isEmpty()) ? category.trim() :null;
-        String searchFilter = (search !=null && !search.trim().isEmpty()) ? search.trim() :null;
+        String categoryFilter = (request.getCategory() !=null && !request.getCategory().trim().isEmpty()) ? request.getCategory().trim() :null;
+        String searchFilter = (request.getSearch()!=null && !request.getSearch().trim().isEmpty()) ? request.getSearch().trim() :null;
 
         Page<Product> productPage = productRepository.findByTenantAndFilters(tenantName,categoryFilter,searchFilter,pageable);
 
@@ -70,6 +72,55 @@ public class ProductService {
         }
         return new PageImpl<>(responses, pageable, productPage.getTotalElements());
     }
+
+    @Transactional
+    public ProductResponse getProductById(Long id,String tenantName){
+
+        String cleanTenantName = tenantName.trim();
+
+        Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
+//                .orElseThrow(()->new IllegalArgumentException("Product Not Found with id: "+id+" for tenant "+tenantName);
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getPrice(),
+                product.getAvailableQuantity(),
+                product.getCategory()
+        );
+    }
+
+    public ProductResponse updateProduct(Long id, String tenantName,  UpdateProductRequest request){
+        String cleanTenantName = tenantName.trim();
+
+        Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
+
+        if(request.getName()!=null) product.setName(request.getName());
+        if(request.getPrice()>=0) product.setPrice(request.getPrice());
+        if(request.getAvailableQuantity()!=null) product.setAvailableQuantity(request.getAvailableQuantity());
+        if(request.getCategory()!=null) product.setCategory(request.getCategory());
+
+        Product updated = productRepository.save(product);
+
+        return  new ProductResponse(
+                updated.getId(),
+                updated.getName(),
+                updated.getPrice(),
+                updated.getAvailableQuantity(),
+                updated.getCategory()
+        );
+
+
+    }
+
+    public void deleteProduct( Long id,String  tenantName){
+        String cleanTenantName = tenantName.trim();
+
+        Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
+
+        productRepository.delete(product);
+
+    }
+
 
 
 

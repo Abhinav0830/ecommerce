@@ -8,16 +8,12 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class CreateProductRequest {
-
+@NoArgsConstructor
+public class UpdateProductRequest {
 
     private String name;
-
     private double price;
-
-    private int availableQuantity;
-
+    private Integer availableQuantity;
     private String category;
 }
