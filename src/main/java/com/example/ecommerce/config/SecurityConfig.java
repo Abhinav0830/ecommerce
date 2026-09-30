@@ -67,7 +67,7 @@ public class SecurityConfig {
 
         JwtAuthenticationConverter converter =
                 new JwtAuthenticationConverter();
-
+        converter.setPrincipalClaimName("preferred_username");
         converter.setJwtGrantedAuthoritiesConverter(jwt -> {
 
             Map<String, Object> realmAccess =

@@ -25,8 +25,8 @@ public class Tenant {
 
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+//    @Enumerated(EnumType.STRING)
+//    private Role role;
 
     @OneToMany(mappedBy = "tenant")
     private List<Product> products;
