@@ -33,10 +33,15 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/public/auth/signUp").permitAll()
                         .requestMatchers("/public/**").permitAll()
+
+                        .requestMatchers("/products/**")
+                        .hasRole("USER")
 
                         .requestMatchers("/admin/**")
                         .hasRole("ADMIN")
+
 
                         .requestMatchers("/tenant/**")
                         .hasRole("TENANT")

@@ -18,7 +18,15 @@ public interface ProductRepository extends JpaRepository<Product,Long> {
                                          @Param("category") String categoryFilter,
                                          @Param("search") String searchFilter,
                                          Pageable pageable);
-
+    @Query("""
+        SELECT p FROM Product p
+        WHERE (:category IS NULL OR LOWER(p.category) = LOWER(:category))
+        AND (:search IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')))
+        """)
+    Page<Product> findAllWithFilters(
+            @Param("category") String category,
+            @Param("search") String search,
+            Pageable pageable);
 
     Product findByIdAndTenantName(Long id, String cleanTenantName);
     //Product findbyId(Long id);

@@ -6,30 +6,35 @@ import com.example.ecommerce.dto.ProductResponse;
 import com.example.ecommerce.dto.UpdateProductRequest;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.Tenant;
+import com.example.ecommerce.entity.User;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.TenantRepository;
+import com.example.ecommerce.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class ProductService {
+public class TenantProductService {
     private final ProductRepository productRepository;
     private final TenantRepository tenantRepository;
+    private final UserRepository userRepository;
 
-    public ProductService(ProductRepository productRepository, TenantRepository tenantRepository) {
+    public TenantProductService(ProductRepository productRepository, TenantRepository tenantRepository, UserRepository userRepository) {
         this.productRepository = productRepository;
         this.tenantRepository = tenantRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
-    public ProductResponse createProduct(String tenantName, CreateProductRequest request) {
+    public ProductResponse createProduct(String tenantName, CreateProductRequest request, Authentication auth) {
 
         Tenant tenant = tenantRepository.findByName(tenantName);
-
+        validateTenantAccess(auth,tenantName);
         Product product = new Product();
         product.setName(request.getName());
         product.setCategory(request.getCategory());
@@ -46,7 +51,7 @@ public class ProductService {
                                              GetProductRequest request) {
 
         int page = (request.getPage()<0)?0: request.getPage();
-        int size = (request.getSize()<=0) ? 0 : request.getSize();
+        int size = (request.getSize()<=0) ? 10 : request.getSize();
 
         String sortBy = (request.getSortBy() == null || request.getSortBy().trim().isEmpty() ? "id" : request.getSortBy());
         String sortDir = (request.getSortDir() == null || request.getSortDir().trim().isEmpty() ? "asc" : request.getSortDir());
@@ -89,8 +94,11 @@ public class ProductService {
         );
     }
 
-    public ProductResponse updateProduct(Long id, String tenantName,  UpdateProductRequest request){
+    @Transactional
+    public ProductResponse updateProduct(Long id, String tenantName,  UpdateProductRequest request, Authentication auth){
         String cleanTenantName = tenantName.trim();
+
+        validateTenantAccess(auth,cleanTenantName);
 
         Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
 
@@ -112,14 +120,37 @@ public class ProductService {
 
     }
 
-    public void deleteProduct( Long id,String  tenantName){
+    @Transactional
+    public void deleteProduct( Long id,String  tenantName, Authentication auth){
         String cleanTenantName = tenantName.trim();
+
+        validateTenantAccess(auth,cleanTenantName);
 
         Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
 
         productRepository.delete(product);
 
     }
+
+    public void validateTenantAccess(Authentication auth, String tenantName){
+
+        String authTenant = auth.getName();
+
+        User user = userRepository.findByUsername(authTenant);
+        if(user==null){
+            throw new RuntimeException("User not found");
+        }
+
+        if(user.getTenant() == null){
+            throw new RuntimeException("User is a regular dude");
+        }
+
+        if(!user.getTenant().equals(tenantName)){
+            throw new RuntimeException("User isn't authorised to make these changes");
+        }
+
+    }
+
 
 
 

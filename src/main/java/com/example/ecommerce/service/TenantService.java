@@ -1,7 +1,6 @@
 package com.example.ecommerce.service;
 
 
-import com.example.ecommerce.controller.TenantController;
 import com.example.ecommerce.dto.CreateTenantRequest;
 import com.example.ecommerce.dto.TenantResponse;
 import com.example.ecommerce.entity.Tenant;

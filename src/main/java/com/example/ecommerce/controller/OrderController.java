@@ -21,7 +21,7 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @PostMapping("/{id}")
+    @PostMapping
     public ResponseEntity<OrderResponse> createOrder(Authentication auth,
                                                      @RequestBody CreateOrderRequest request){
 

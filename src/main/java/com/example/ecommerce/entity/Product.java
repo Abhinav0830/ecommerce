@@ -17,9 +17,14 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @Column(nullable = false)
     private String name;
+    @Column(nullable = false)
     private String category;
+    @Column(nullable = false)
     private double price;
+
+    @Column(nullable = false)
     private int availableQuantity;
     @ManyToOne
     @JoinColumn(name = "tenant_id")
