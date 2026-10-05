@@ -12,6 +12,14 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+
+import java.util.List;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +32,7 @@ public class SecurityConfig {
             HttpSecurity http) throws Exception {
 
         http
+                .cors(cors->{})
                 .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
@@ -37,7 +46,7 @@ public class SecurityConfig {
                         .requestMatchers("/public/**").permitAll()
 
                         .requestMatchers("/products/**")
-                        .hasRole("USER")
+                        .hasAnyRole("USER", "TENANT")
 
                         .requestMatchers("/admin/**")
                         .hasRole("ADMIN")
@@ -78,22 +87,54 @@ public class SecurityConfig {
             Map<String, Object> realmAccess =
                     jwt.getClaimAsMap("realm_access");
 
+            System.out.println("REALM ACCESS: " + realmAccess);
+
             if (realmAccess == null) {
-                return List.<GrantedAuthority>of();
+                return List.of();
             }
 
             Object rolesObject = realmAccess.get("roles");
 
+            System.out.println("ROLES OBJECT: " + rolesObject);
+
             if (!(rolesObject instanceof Collection<?> roles)) {
-                return List.<GrantedAuthority>of();
+                return List.of();
             }
 
-            return roles.stream()
+            var authorities = roles.stream()
                     .map(role -> (GrantedAuthority)
                             new SimpleGrantedAuthority("ROLE_" + role))
                     .toList();
-        });
 
+            System.out.println("AUTHORITIES: " + authorities);
+
+            return authorities;
+        });
         return converter;
+    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(
+                List.of("http://localhost:5173")
+        );
+
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        );
+
+        configuration.setAllowedHeaders(
+                List.of("*")
+        );
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+                new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
     }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -40,14 +41,14 @@ public class OrderService {
 
         String username = auth.getName();
 
-        User user = userRepository.findByUsername(username);
+        Optional<User> user = userRepository.findByUsername(username);
 
-        if(user==null){
+        if(user.isEmpty()){
             throw new RuntimeException("User not Found");
         }
 
         Order order = new Order();
-        order.setUser(user);
+        order.setUser(user.get());
 
         int totalQuantity =0;
         int totalPrice = 0;
@@ -106,13 +107,13 @@ public class OrderService {
 
     public List<OrderResponse> getOrderHistory(Authentication auth) {
 
-        User user = userRepository.findByUsername(auth.getName());
+        Optional<User> user = userRepository.findByUsername(auth.getName());
 
-        if(user==null){
+        if(user.isEmpty()){
             throw new RuntimeException("No such user found!");
         }
 
-        List<Order> orders = orderRepository.findByUser(user);
+        List<Order> orders = orderRepository.findByUser(user.get());
         List<OrderResponse> responses = new ArrayList<>();
 
         for(Order order : orders){

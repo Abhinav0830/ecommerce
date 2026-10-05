@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class TenantProductService {
@@ -33,14 +34,17 @@ public class TenantProductService {
     @Transactional
     public ProductResponse createProduct(String tenantName, CreateProductRequest request, Authentication auth) {
 
-        Tenant tenant = tenantRepository.findByName(tenantName);
+        Optional<Tenant> tenant = tenantRepository.findByName(tenantName);
+        if(tenant.isEmpty()){
+            throw new RuntimeException("Tenant does not exist");
+        }
         validateTenantAccess(auth,tenantName);
         Product product = new Product();
         product.setName(request.getName());
         product.setCategory(request.getCategory());
         product.setAvailableQuantity(request.getAvailableQuantity());
         product.setPrice(request.getPrice());
-        product.setTenant(tenant);
+        product.setTenant(tenant.get());
 
         Product saved = productRepository.save(product);
         return new ProductResponse(saved.getId(), saved.getName(), saved.getPrice(), saved.getAvailableQuantity(), saved.getCategory());
@@ -136,16 +140,17 @@ public class TenantProductService {
 
         String authTenant = auth.getName();
 
-        User user = userRepository.findByUsername(authTenant);
-        if(user==null){
+        Optional<User> op_user = userRepository.findByUsername(authTenant);
+        if(op_user.isEmpty()){
             throw new RuntimeException("User not found");
         }
+        User user = op_user.get();
 
         if(user.getTenant() == null){
             throw new RuntimeException("User is a regular dude");
         }
 
-        if(!user.getTenant().equals(tenantName)){
+        if(!user.getTenant().getName().equals(tenantName)){
             throw new RuntimeException("User isn't authorised to make these changes");
         }
 
