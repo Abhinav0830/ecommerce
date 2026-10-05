@@ -4,9 +4,11 @@ import com.example.ecommerce.dto.CreateProductRequest;
 import com.example.ecommerce.dto.GetProductRequest;
 import com.example.ecommerce.dto.ProductResponse;
 import com.example.ecommerce.dto.UpdateProductRequest;
+import com.example.ecommerce.entity.Category;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.Tenant;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.repository.CategoryRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.TenantRepository;
 import com.example.ecommerce.repository.UserRepository;
@@ -24,11 +26,13 @@ public class TenantProductService {
     private final ProductRepository productRepository;
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
-    public TenantProductService(ProductRepository productRepository, TenantRepository tenantRepository, UserRepository userRepository) {
+    public TenantProductService(ProductRepository productRepository, TenantRepository tenantRepository, UserRepository userRepository, CategoryRepository categoryRepository) {
         this.productRepository = productRepository;
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
+        this.categoryRepository= categoryRepository;
     }
 
     @Transactional
@@ -45,7 +49,11 @@ public class TenantProductService {
         product.setAvailableQuantity(request.getAvailableQuantity());
         product.setPrice(request.getPrice());
         product.setTenant(tenant.get());
-
+        if(!categoryRepository.existsByNameIgnoreCase(request.getCategory())) {
+            Category cat = new Category();
+            cat.setName(request.getCategory());
+            categoryRepository.save(cat);
+        }
         Product saved = productRepository.save(product);
         return new ProductResponse(saved.getId(), saved.getName(), saved.getPrice(), saved.getAvailableQuantity(), saved.getCategory());
     }

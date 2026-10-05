@@ -28,7 +28,10 @@ public class UserService {
     }
 
     public User signUp(UserSignUpRequest request){
-        if(userRepository.findByUsername(request.getUsername())!=null){
+        System.out.println(request.getUsername());
+//        Optional<User> existingUser = userRepository.findByUsername(request.getUsername());
+//        System.out.println(existingUser.get());
+        if(userRepository.findByUsername(request.getUsername()).isPresent()){
             throw new RuntimeException("User already exists");
         }
         UserRepresentation keycloakUser = new UserRepresentation();

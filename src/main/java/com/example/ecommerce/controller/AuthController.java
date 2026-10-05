@@ -20,6 +20,7 @@ public class AuthController {
 
     @PostMapping("/signUp")
     public ResponseEntity<User> signUp(@RequestBody UserSignUpRequest request){
+        System.out.println("SIGNUP CONTROLLER HIT");
         return ResponseEntity.ok(userService.signUp(request));
     }
 }

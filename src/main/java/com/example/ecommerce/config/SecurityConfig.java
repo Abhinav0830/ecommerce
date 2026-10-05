@@ -45,6 +45,8 @@ public class SecurityConfig {
                         .requestMatchers("/public/auth/signUp").permitAll()
                         .requestMatchers("/public/**").permitAll()
 
+                        .requestMatchers("/categories").permitAll()
+
                         .requestMatchers("/products/**")
                         .hasAnyRole("USER", "TENANT")
 
