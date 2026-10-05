@@ -13,6 +13,7 @@ import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.TenantRepository;
 import com.example.ecommerce.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -36,7 +37,7 @@ public class TenantProductService {
     }
 
     @Transactional
-    public ProductResponse createProduct(String tenantName, CreateProductRequest request, Authentication auth) {
+    public ProductResponse createProduct(String tenantName, @Valid CreateProductRequest request, Authentication auth) {
 
         Optional<Tenant> tenant = tenantRepository.findByName(tenantName);
         if(tenant.isEmpty()){
