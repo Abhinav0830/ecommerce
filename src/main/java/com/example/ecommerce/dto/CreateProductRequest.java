@@ -8,6 +8,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -18,7 +20,7 @@ public class CreateProductRequest {
     private String name;
 
     @Positive(message = "Price must be greater than 0")
-    private double price;
+    private BigDecimal price;
 
 
     private int availableQuantity;

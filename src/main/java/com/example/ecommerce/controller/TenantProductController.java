@@ -5,6 +5,7 @@ import com.example.ecommerce.dto.GetProductRequest;
 import com.example.ecommerce.dto.ProductResponse;
 import com.example.ecommerce.dto.UpdateProductRequest;
 import com.example.ecommerce.service.TenantProductService;
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class TenantProductController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<ProductResponse> createNewProduct(@PathVariable String tenantName, @RequestBody CreateProductRequest request,Authentication auth){
+    public ResponseEntity<ProductResponse> createNewProduct(@PathVariable String tenantName, @Valid @RequestBody CreateProductRequest request,Authentication auth){
         ProductResponse response = tenantProductService.createProduct(tenantName,request,auth);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -41,7 +42,7 @@ public class TenantProductController {
     }
 
     @PutMapping("/update/{id}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable long id, @PathVariable String tenantName, @RequestBody UpdateProductRequest request,Authentication auth){
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable long id, @PathVariable String tenantName, @Valid @RequestBody UpdateProductRequest request, Authentication auth){
         ProductResponse response = tenantProductService.updateProduct(id,tenantName,request,auth);
 
         return ResponseEntity.ok(response);

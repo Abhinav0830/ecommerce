@@ -1,22 +1,26 @@
 package com.example.ecommerce.dto;
 
 import com.example.ecommerce.entity.Order;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class OrderItemResponse {
-    private long id;
+    private Long id;
 
     private String productName;
 
-    private double price;
+    private BigDecimal price;
     private int quantity;
-    private double totalPrice;
+    private BigDecimal totalPrice;
 
 }

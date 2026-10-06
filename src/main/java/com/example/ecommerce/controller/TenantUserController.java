@@ -3,6 +3,7 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.dto.CreateTenantUserRequest;
 import com.example.ecommerce.dto.TenantUserResponse;
 import com.example.ecommerce.service.TenantUserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class TenantUserController {
     @PostMapping("/{tenantName}/users")
     public ResponseEntity<String> createTenantUser(
             @PathVariable String tenantName,
-            @RequestBody CreateTenantUserRequest request
+            @Valid @RequestBody CreateTenantUserRequest request
     ) {
 
         tenantUserService.createTenantUser(tenantName, request);

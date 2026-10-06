@@ -5,6 +5,7 @@ import com.example.ecommerce.dto.CreateOrderRequest;
 import com.example.ecommerce.dto.OrderResponse;
 import com.example.ecommerce.service.OrderService;
 //import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
@@ -23,7 +24,7 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(Authentication auth,
-                                                     @RequestBody CreateOrderRequest request){
+                                                     @Valid @RequestBody CreateOrderRequest request){
 
         OrderResponse response = orderService.createOrder(auth,request);
 

@@ -12,7 +12,7 @@ import lombok.Setter;
 public class ProductResponse {
     private long id;
     private String name;
-    private double price;
+    private BigDecimal price;
     private int availableQuantity;
     private String category;
 }

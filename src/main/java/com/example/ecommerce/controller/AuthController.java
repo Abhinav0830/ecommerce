@@ -3,6 +3,7 @@ package com.example.ecommerce.controller;
 import com.example.ecommerce.dto.UserSignUpRequest;
 import com.example.ecommerce.entity.User;
 import com.example.ecommerce.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,7 +20,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<User> signUp(@RequestBody UserSignUpRequest request){
+    public ResponseEntity<User> signUp(@Valid @RequestBody UserSignUpRequest request){
         System.out.println("SIGNUP CONTROLLER HIT");
         return ResponseEntity.ok(userService.signUp(request));
     }
