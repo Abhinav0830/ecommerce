@@ -45,10 +45,10 @@ public class SecurityConfig {
                         .requestMatchers("/public/auth/signUp").permitAll()
                         .requestMatchers("/public/**").permitAll()
 
-                        .requestMatchers("/categories").permitAll()
+                        .requestMatchers("/categories").hasAnyRole("USER","TENANT")
 
                         .requestMatchers("/products/**")
-                        .hasAnyRole("USER", "TENANT")
+                        .hasAnyRole("USER", "TENANT","ADMIN")
 
                         .requestMatchers("/admin/**")
                         .hasRole("ADMIN")
@@ -57,8 +57,10 @@ public class SecurityConfig {
                         .requestMatchers("/tenant/**")
                         .hasRole("TENANT")
 
+                        .requestMatchers("/favourites/**").hasAnyRole("USER", "TENANT", "ADMIN")
+
                         .requestMatchers("/orders/**")
-                        .hasAnyRole("USER", "TENANT")
+                        .hasAnyRole("USER", "TENANT", "ADMIN")
 
                         .requestMatchers("/debug/**")
                         .permitAll()

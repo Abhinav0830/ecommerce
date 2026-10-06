@@ -1,9 +1,11 @@
 package com.example.ecommerce.service;
 
 import com.example.ecommerce.dto.CreateTenantUserRequest;
+import com.example.ecommerce.dto.TenantUserResponse;
 import com.example.ecommerce.entity.Role;
 import com.example.ecommerce.entity.Tenant;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.exception.ResourceNotFoundException;
 import com.example.ecommerce.repository.TenantRepository;
 import com.example.ecommerce.repository.UserRepository;
 import jakarta.ws.rs.core.Response;
@@ -14,6 +16,7 @@ import org.keycloak.representations.idm.UserRepresentation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,7 +47,7 @@ public class TenantUserService {
         // 1. Find tenant
         Tenant tenant = tenantRepository.findByName(tenantName)
                 .orElseThrow(() ->
-                        new RuntimeException("Tenant not found"));
+                        new ResourceNotFoundException("Tenant not found"));
 
         // 2. Check if username already exists in our database
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
@@ -54,7 +57,7 @@ public class TenantUserService {
         // 3. Create Keycloak user
         UserRepresentation keycloakUser = new UserRepresentation();
 
-        keycloakUser.setUsername(request.getUsername());
+        keycloakUser.setUsername(request.getUsername().toLowerCase());
         keycloakUser.setEnabled(true);
 
         CredentialRepresentation credential =
@@ -108,5 +111,115 @@ public class TenantUserService {
         user.setTenant(tenant);
 
         userRepository.save(user);
+    }
+
+    public List<TenantUserResponse> getTenantUsers(String tenantName) {
+
+        Tenant tenant = tenantRepository.findByName(tenantName)
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant not found"));
+
+        List<User> users =
+                userRepository.findByTenantAndRoleAndActiveTrue(
+                        tenant,
+                        Role.TENANT
+                );
+
+        List<TenantUserResponse> response = new ArrayList<>();
+
+        for (User user : users) {
+            TenantUserResponse userResponse =
+                    new TenantUserResponse(
+                            user.getId(),
+                            user.getUsername()
+                    );
+
+            response.add(userResponse);
+        }
+
+        return response;
+    }
+
+    public void deleteTenantUser(
+            String tenantName,
+            Long userId
+    ) {
+        System.out.println("Strating disable");
+        Tenant tenant = tenantRepository.findByName(tenantName)
+                .orElseThrow(() ->
+                        new RuntimeException("Tenant not found"));
+        System.out.println("Tenant found");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
+        System.out.println("User Found");
+
+        if (user.getRole() != Role.TENANT) {
+            throw new RuntimeException("User is not a tenant user");
+        }
+        System.out.println("User is a tenant");
+        // the user belongs to the requested tenant
+        if (user.getTenant() == null ||
+                !user.getTenant().getId().equals(tenant.getId())) {
+
+            throw new RuntimeException(
+                    "User does not belong to this tenant"
+            );
+        }
+
+        // Find the user in Keycloak
+        List<UserRepresentation> keycloakUsers = keycloak
+                .realm(realm)
+                .users()
+                .search(user.getUsername());
+
+        System.out.println("User found in keycloak");
+
+
+
+        //debugging
+        System.out.println(
+                "Searching Keycloak for: " + user.getUsername()
+        );
+
+        System.out.println(
+                "Keycloak users found: " + keycloakUsers.size()
+        );
+
+        for (UserRepresentation u : keycloakUsers) {
+            System.out.println(
+                    "Found Keycloak username: " + u.getUsername()
+            );
+        }
+        //ends
+
+        UserRepresentation keycloakUser = null;
+        for (UserRepresentation u : keycloakUsers) {
+
+            if (user.getUsername().equalsIgnoreCase(u.getUsername())) {
+                keycloakUser = u;
+                break;
+            }
+        }
+
+        if (keycloakUser == null) {
+            throw new RuntimeException("User not found in Keycloak");
+        }
+
+        keycloakUser.setEnabled(false);
+        System.out.println("Keycloak user false");
+        // Delete Keycloak user first
+        keycloak
+                .realm(realm)
+                .users()
+                .get(keycloakUser.getId())
+                .update(keycloakUser);
+        System.out.println("Keycloak db update");
+
+
+        // Only delete DB user after Keycloak deletion succeeds
+        user.setActive(false);
+        userRepository.save(user);
+        System.out.println("User db update");
     }
 }
