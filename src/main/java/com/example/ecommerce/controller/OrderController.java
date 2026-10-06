@@ -22,7 +22,7 @@ public class OrderController {
         this.orderService = orderService;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<OrderResponse> createOrder(Authentication auth,
                                                      @Valid @RequestBody CreateOrderRequest request){
 
@@ -31,7 +31,7 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping("/history")
     public ResponseEntity<List<OrderResponse>> getOrderHistory(Authentication auth){
 
         return ResponseEntity.ok(orderService.getOrderHistory(auth));

@@ -24,12 +24,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+
+
+
 @Configuration
 public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http) throws Exception {
+
 
         http
                 .cors(cors->{})
@@ -42,8 +46,8 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/auth/signUp").permitAll()
-                        .requestMatchers("/public/**").permitAll()
+
+                        .requestMatchers("/public/**","/error").permitAll()
 
                         .requestMatchers("/categories").hasAnyRole("USER","TENANT")
 

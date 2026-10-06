@@ -28,14 +28,14 @@ public class TenantProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @GetMapping
+    @GetMapping("/getProducts")
     public ResponseEntity<Page<ProductResponse>> getProducts(@PathVariable String tenantName,
                                                              GetProductRequest request){
 
         Page<ProductResponse> products = tenantProductService.getProducts(tenantName,request);
         return ResponseEntity.ok(products);
     }
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable long id, @PathVariable String tenantName){
         ProductResponse response = tenantProductService.getProductById(id,tenantName);
         return ResponseEntity.ok(response);

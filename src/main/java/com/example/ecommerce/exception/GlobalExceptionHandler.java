@@ -40,10 +40,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex){
-        ErrorResponse error = new ErrorResponse(500, ex.getMessage());
-
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-    }
+//    @ExceptionHandler(Exception.class)
+//    public ResponseEntity<ErrorResponse> handleGeneralException(Exception ex){
+//        ErrorResponse error = new ErrorResponse(500, ex.getMessage());
+//
+//        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+//    }
 }

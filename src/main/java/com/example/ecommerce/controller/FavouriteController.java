@@ -20,7 +20,7 @@ public class FavouriteController {
         this.favouriteService = favouriteService;
     }
 
-    @PostMapping("/{productId}")
+    @PostMapping("/add/{productId}")
     public ResponseEntity<String> addFavourite(
             Authentication auth,
             @PathVariable Long productId) {
@@ -30,7 +30,7 @@ public class FavouriteController {
         return ResponseEntity.ok("Product added to favourites");
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/delete/{productId}")
     public ResponseEntity<String> removeFavourite(
             Authentication auth,
             @PathVariable Long productId) {
@@ -40,7 +40,7 @@ public class FavouriteController {
         return ResponseEntity.ok("Product removed from favourites");
     }
 
-    @GetMapping
+    @GetMapping("/getAll")
     public ResponseEntity<List<ProductResponse>> getFavourites(
             Authentication auth) {
 
@@ -49,7 +49,7 @@ public class FavouriteController {
         );
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/get/{productId}")
     public ResponseEntity<Boolean> isFavourite(
             Authentication auth,
             @PathVariable Long productId) {

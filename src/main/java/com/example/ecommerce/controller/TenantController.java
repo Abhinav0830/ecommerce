@@ -19,17 +19,17 @@ public class TenantController {
         this.tenantService = tenantService;
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<TenantResponse> createTenant (@Valid @RequestBody CreateTenantRequest request){
         return ResponseEntity.ok(tenantService.createTenant(request));
     }
 
-    @GetMapping
+    @GetMapping("/getTenants")
     public ResponseEntity<List<TenantResponse>> getAllTenants(){
         return ResponseEntity.ok(tenantService.getAllTenants());
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteTenant(@PathVariable Long id){
         TenantResponse res = tenantService.deleteTenant(id);
         return ResponseEntity.ok().body("Deleted tenant "+res.getName()+ " successfully");
