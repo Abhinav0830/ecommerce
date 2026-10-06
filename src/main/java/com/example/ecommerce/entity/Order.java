@@ -8,7 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Cascade;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
-import java.math.BigDecimal;
+
 import java.util.List;
 
 @Entity
@@ -27,8 +27,10 @@ public class Order {
     private User user;
 
     private int totalQuantity;
-    private BigDecimal totalPrice;
+    private double totalPrice;
 
     @OneToMany(mappedBy = "order",cascade = CascadeType.ALL)
     private List<OrderItem> orderItems;
+
+
 }

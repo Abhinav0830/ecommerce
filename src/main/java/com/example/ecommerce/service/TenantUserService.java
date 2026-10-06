@@ -5,9 +5,11 @@ import com.example.ecommerce.dto.TenantUserResponse;
 import com.example.ecommerce.entity.Role;
 import com.example.ecommerce.entity.Tenant;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.exception.DuplicateResourceException;
 import com.example.ecommerce.exception.ResourceNotFoundException;
 import com.example.ecommerce.repository.TenantRepository;
 import com.example.ecommerce.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.Keycloak;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -38,7 +40,7 @@ public class TenantUserService {
         this.userRepository = userRepository;
         this.tenantRepository = tenantRepository;
     }
-
+    @Transactional
     public void createTenantUser(
             String tenantName,
             CreateTenantUserRequest request
@@ -51,7 +53,7 @@ public class TenantUserService {
 
         // 2. Check if username already exists in our database
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new RuntimeException("Username already exists");
+            throw new DuplicateResourceException("Username already exists");
         }
 
         // 3. Create Keycloak user
@@ -112,12 +114,12 @@ public class TenantUserService {
 
         userRepository.save(user);
     }
-
+    @Transactional
     public List<TenantUserResponse> getTenantUsers(String tenantName) {
 
         Tenant tenant = tenantRepository.findByName(tenantName)
                 .orElseThrow(() ->
-                        new RuntimeException("Tenant not found"));
+                        new ResourceNotFoundException("Tenant not found"));
 
         List<User> users =
                 userRepository.findByTenantAndRoleAndActiveTrue(
@@ -139,20 +141,18 @@ public class TenantUserService {
 
         return response;
     }
-
+    @Transactional
     public void deleteTenantUser(
             String tenantName,
             Long userId
     ) {
-        System.out.println("Strating disable");
+       // System.out.println("Starting disable");
         Tenant tenant = tenantRepository.findByName(tenantName)
                 .orElseThrow(() ->
-                        new RuntimeException("Tenant not found"));
-        System.out.println("Tenant found");
+                        new ResourceNotFoundException("Tenant not found"));
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
-        System.out.println("User Found");
 
         if (user.getRole() != Role.TENANT) {
             throw new RuntimeException("User is not a tenant user");
@@ -162,7 +162,7 @@ public class TenantUserService {
         if (user.getTenant() == null ||
                 !user.getTenant().getId().equals(tenant.getId())) {
 
-            throw new RuntimeException(
+            throw new ResourceNotFoundException(
                     "User does not belong to this tenant"
             );
         }
@@ -173,7 +173,7 @@ public class TenantUserService {
                 .users()
                 .search(user.getUsername());
 
-        System.out.println("User found in keycloak");
+
 
 
 
@@ -203,7 +203,7 @@ public class TenantUserService {
         }
 
         if (keycloakUser == null) {
-            throw new RuntimeException("User not found in Keycloak");
+            throw new ResourceNotFoundException("User not found in Keycloak");
         }
 
         keycloakUser.setEnabled(false);

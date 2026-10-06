@@ -17,6 +17,6 @@ public class OrderResponse {
 
     private long id;
     private int totalQuantity;
-    private BigDecimal totalPrice;
+    private double totalPrice;
     private List<OrderItemResponse> orderItems;
 }

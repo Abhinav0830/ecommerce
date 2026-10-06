@@ -4,6 +4,7 @@ import com.example.ecommerce.dto.GetProductRequest;
 import com.example.ecommerce.dto.ProductResponse;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +19,7 @@ public class UserProductService {
     public UserProductService(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
-
+    @Transactional
     public Page<ProductResponse> getProducts(GetProductRequest request) {
 
         int page = request.getPage() < 0 ? 0 : request.getPage();
@@ -58,7 +59,7 @@ public class UserProductService {
                         : null;
 
         Page<Product> productPage =
-                productRepository.findAllWithFilters(
+                productRepository.findAllWithFiltersAndDeletedFalse(
                         category,
                         search,
                         pageable

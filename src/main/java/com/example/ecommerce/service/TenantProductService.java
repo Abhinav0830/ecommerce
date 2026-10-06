@@ -8,6 +8,7 @@ import com.example.ecommerce.entity.Category;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.Tenant;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.exception.ResourceNotFoundException;
 import com.example.ecommerce.repository.CategoryRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.TenantRepository;
@@ -33,24 +34,24 @@ public class TenantProductService {
         this.productRepository = productRepository;
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
-        this.categoryRepository= categoryRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Transactional
     public ProductResponse createProduct(String tenantName, @Valid CreateProductRequest request, Authentication auth) {
 
         Optional<Tenant> tenant = tenantRepository.findByName(tenantName);
-        if(tenant.isEmpty()){
-            throw new RuntimeException("Tenant does not exist");
+        if (tenant.isEmpty()) {
+            throw new ResourceNotFoundException("Tenant does not exist");
         }
-        validateTenantAccess(auth,tenantName);
+        validateTenantAccess(auth, tenantName);
         Product product = new Product();
         product.setName(request.getName());
         product.setCategory(request.getCategory());
         product.setAvailableQuantity(request.getAvailableQuantity());
         product.setPrice(request.getPrice());
         product.setTenant(tenant.get());
-        if(!categoryRepository.existsByNameIgnoreCase(request.getCategory())) {
+        if (!categoryRepository.existsByNameIgnoreCase(request.getCategory())) {
             Category cat = new Category();
             cat.setName(request.getCategory());
             categoryRepository.save(cat);
@@ -63,28 +64,28 @@ public class TenantProductService {
     public Page<ProductResponse> getProducts(String tenantName,
                                              GetProductRequest request) {
 
-        int page = (request.getPage()<0)?0: request.getPage();
-        int size = (request.getSize()<=0) ? 10 : request.getSize();
+        int page = (request.getPage() < 0) ? 0 : request.getPage();
+        int size = (request.getSize() <= 0) ? 10 : request.getSize();
 
         String sortBy = (request.getSortBy() == null || request.getSortBy().trim().isEmpty() ? "id" : request.getSortBy());
         String sortDir = (request.getSortDir() == null || request.getSortDir().trim().isEmpty() ? "asc" : request.getSortDir());
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
-        Pageable pageable = PageRequest.of(page,size,sort);
+        Pageable pageable = PageRequest.of(page, size, sort);
 
-        String categoryFilter = (request.getCategory() !=null && !request.getCategory().trim().isEmpty()) ? request.getCategory().trim() :null;
-        String searchFilter = (request.getSearch()!=null && !request.getSearch().trim().isEmpty()) ? request.getSearch().trim() :null;
+        String categoryFilter = (request.getCategory() != null && !request.getCategory().trim().isEmpty()) ? request.getCategory().trim() : null;
+        String searchFilter = (request.getSearch() != null && !request.getSearch().trim().isEmpty()) ? request.getSearch().trim() : null;
 
-        Page<Product> productPage = productRepository.findByTenantAndFilters(tenantName,categoryFilter,searchFilter,pageable);
+        Page<Product> productPage = productRepository.findByTenantAndDeletedFalseAndFilters(tenantName, categoryFilter, searchFilter, pageable);
 
         List<ProductResponse> responses = new ArrayList<>();
-        for(Product p : productPage.getContent()){
+        for (Product p : productPage.getContent()) {
             responses.add(
                     new ProductResponse(
                             p.getId(),
                             p.getName(),
                             p.getPrice(),
                             p.getAvailableQuantity()
-                            ,p.getCategory()
+                            , p.getCategory()
                     )
             );
         }
@@ -92,12 +93,15 @@ public class TenantProductService {
     }
 
     @Transactional
-    public ProductResponse getProductById(Long id,String tenantName){
+    public ProductResponse getProductById(Long id, String tenantName) {
 
         String cleanTenantName = tenantName.trim();
 
-        Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
-//                .orElseThrow(()->new IllegalArgumentException("Product Not Found with id: "+id+" for tenant "+tenantName);
+        Product product = productRepository.findByIdAndTenantNameAndDeletedFalse(id, cleanTenantName);
+        if (product == null) {
+            throw new ResourceNotFoundException("Product Not Found with id: " + id + " for tenant " + tenantName);
+        }
+
         return new ProductResponse(
                 product.getId(),
                 product.getName(),
@@ -108,21 +112,24 @@ public class TenantProductService {
     }
 
     @Transactional
-    public ProductResponse updateProduct(Long id, String tenantName,  UpdateProductRequest request, Authentication auth){
+    public ProductResponse updateProduct(Long id, String tenantName, UpdateProductRequest request, Authentication auth) {
         String cleanTenantName = tenantName.trim();
 
-        validateTenantAccess(auth,cleanTenantName);
+        validateTenantAccess(auth, cleanTenantName);
 
-        Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
+        Product product = productRepository.findByIdAndTenantName(id, cleanTenantName);
+        if (product == null) {
+            throw new ResourceNotFoundException("Product Not Found with id: " + id + " for tenant " + tenantName);
+        }
 
-        if(request.getName()!=null) product.setName(request.getName());
-        if(request.getPrice()>=0) product.setPrice(request.getPrice());
-        if(request.getAvailableQuantity()!=null) product.setAvailableQuantity(request.getAvailableQuantity());
-        if(request.getCategory()!=null) product.setCategory(request.getCategory());
+        if (request.getName() != null) product.setName(request.getName());
+        if (request.getPrice() >= 0) product.setPrice(request.getPrice());
+        if (request.getAvailableQuantity() != null) product.setAvailableQuantity(request.getAvailableQuantity());
+        if (request.getCategory() != null) product.setCategory(request.getCategory());
 
         Product updated = productRepository.save(product);
 
-        return  new ProductResponse(
+        return new ProductResponse(
                 updated.getId(),
                 updated.getName(),
                 updated.getPrice(),
@@ -134,39 +141,38 @@ public class TenantProductService {
     }
 
     @Transactional
-    public void deleteProduct( Long id,String  tenantName, Authentication auth){
+    public void deleteProduct(Long id, String tenantName, Authentication auth) {
         String cleanTenantName = tenantName.trim();
 
-        validateTenantAccess(auth,cleanTenantName);
+        validateTenantAccess(auth, cleanTenantName);
 
-        Product product = productRepository.findByIdAndTenantName(id,cleanTenantName);
-
-        productRepository.delete(product);
+        Product product = productRepository.findByIdAndTenantNameAndDeletedFalse(id, cleanTenantName);
+        if (product == null) {
+            throw new ResourceNotFoundException("Product with id: " + id + " and tenant: " + tenantName + " does not exist");
+        }
+        product.setDeleted(true);
+        productRepository.save(product);
 
     }
 
-    public void validateTenantAccess(Authentication auth, String tenantName){
+    public void validateTenantAccess(Authentication auth, String tenantName) {
 
         String authTenant = auth.getName();
 
         Optional<User> op_user = userRepository.findByUsername(authTenant);
-        if(op_user.isEmpty()){
+        if (op_user.isEmpty()) {
             throw new RuntimeException("User not found");
         }
         User user = op_user.get();
 
-        if(user.getTenant() == null){
+        if (user.getTenant() == null) {
             throw new RuntimeException("User is a regular dude");
         }
 
-        if(!user.getTenant().getName().equals(tenantName)){
+        if (!user.getTenant().getName().equals(tenantName)) {
             throw new RuntimeException("User isn't authorised to make these changes");
         }
 
     }
-
-
-
-
 
 }

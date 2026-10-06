@@ -9,13 +9,18 @@ import com.example.ecommerce.entity.Order;
 import com.example.ecommerce.entity.OrderItem;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.exception.InsufficientStockException;
+import com.example.ecommerce.exception.ResourceNotFoundException;
 import com.example.ecommerce.repository.OrderItemRepository;
 import com.example.ecommerce.repository.OrderRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+
+import javax.naming.InsufficientResourcesException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +41,7 @@ public class OrderService {
         this.orderItemRepository = orderItemRepository;
     }
 
-
+    @Transactional
     public OrderResponse createOrder(Authentication auth, CreateOrderRequest request) {
 
         String username = auth.getName();
@@ -51,20 +56,17 @@ public class OrderService {
         order.setUser(user.get());
 
         int totalQuantity =0;
-        int totalPrice = 0;
+        double totalPrice = 0;
         List<OrderItem> orderItemList = new ArrayList<>();
 
         for(OrderItemRequest itemRequest : request.getItems()){
 
             Product product = productRepository.findById(itemRequest.getProductId())
-                    .orElseThrow(()->new RuntimeException("Product not found"));
+                    .orElseThrow(()->new ResourceNotFoundException("Product not found"));
 
             int requestedQuantity = itemRequest.getQuantity();
-            if(requestedQuantity<=0){
-                throw new RuntimeException("Quantity must be greater than 0");
-            }
             if(requestedQuantity> product.getAvailableQuantity()){
-                throw  new RuntimeException("Requested Quantity not available");
+                throw  new InsufficientStockException("Requested Quantity not available");
             }
 
             OrderItem orderItem = new OrderItem();
@@ -76,7 +78,7 @@ public class OrderService {
 
             product.setAvailableQuantity(product.getAvailableQuantity()-requestedQuantity);
             totalQuantity += requestedQuantity;
-            totalPrice+=(requestedQuantity*product.getPrice());
+            totalPrice+=(product.getPrice())*requestedQuantity;
 
             productRepository.save(product);
 
@@ -104,13 +106,13 @@ public class OrderService {
                 itemResponses);
     }
 
-
+    @Transactional
     public List<OrderResponse> getOrderHistory(Authentication auth) {
 
         Optional<User> user = userRepository.findByUsername(auth.getName());
 
         if(user.isEmpty()){
-            throw new RuntimeException("No such user found!");
+            throw new ResourceNotFoundException("No such user found!");
         }
 
         List<Order> orders = orderRepository.findByUser(user.get());

@@ -3,8 +3,10 @@ package com.example.ecommerce.service;
 import com.example.ecommerce.dto.UserSignUpRequest;
 import com.example.ecommerce.entity.Role;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.exception.DuplicateResourceException;
 import com.example.ecommerce.repository.UserRepository;
 
+import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 import org.keycloak.admin.client.CreatedResponseUtil;
 import org.keycloak.admin.client.Keycloak;
@@ -27,12 +29,13 @@ public class UserService {
         this.keycloak=keycloak;
     }
 
+    @Transactional
     public User signUp(UserSignUpRequest request){
         System.out.println(request.getUsername());
 //        Optional<User> existingUser = userRepository.findByUsername(request.getUsername());
 //        System.out.println(existingUser.get());
         if(userRepository.findByUsername(request.getUsername()).isPresent()){
-            throw new RuntimeException("User already exists");
+            throw new DuplicateResourceException("User already exists");
         }
         UserRepresentation keycloakUser = new UserRepresentation();
         keycloakUser.setUsername(request.getUsername());

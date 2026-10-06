@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.math.BigDecimal;
+
 
 @Getter
 @Setter
@@ -20,7 +20,7 @@ public class UpdateProductRequest {
 
     @NotNull(message = "Price is required")
     @Positive(message = "Price must be greater than zero")
-    private BigDecimal price;
+    private double price;
 
     @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be greater than zero")

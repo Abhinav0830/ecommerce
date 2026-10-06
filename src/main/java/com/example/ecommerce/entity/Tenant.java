@@ -27,6 +27,7 @@ public class Tenant {
 
 //    @Enumerated(EnumType.STRING)
 //    private Role role;
+    private boolean deleted = false;
 
     @OneToMany(mappedBy = "tenant")
     private List<Product> products;

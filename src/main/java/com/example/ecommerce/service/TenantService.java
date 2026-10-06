@@ -4,6 +4,8 @@ package com.example.ecommerce.service;
 import com.example.ecommerce.dto.CreateTenantRequest;
 import com.example.ecommerce.dto.TenantResponse;
 import com.example.ecommerce.entity.Tenant;
+import com.example.ecommerce.exception.DuplicateResourceException;
+import com.example.ecommerce.exception.ResourceNotFoundException;
 import com.example.ecommerce.repository.TenantRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -23,7 +25,7 @@ public class TenantService {
         String tenantName = request.getName();
 
         if(tenantRepository.existsByName(tenantName)){
-            throw new IllegalArgumentException("Tenant with name "+ tenantName + " already exists");
+            throw new DuplicateResourceException("Tenant with name "+ tenantName + " already exists");
         }
 
         Tenant tenant = new Tenant();
@@ -35,20 +37,23 @@ public class TenantService {
     }
     @Transactional
     public List<TenantResponse> getAllTenants(){
-        List<Tenant> tenants = tenantRepository.findAll();
+        List<Tenant> tenants = tenantRepository.findByDeletedFalse();
         List<TenantResponse> response = new ArrayList<>();
         for(Tenant tenant : tenants){
             response.add(new TenantResponse(tenant.getId(),tenant.getName()));
         }
         return response;
     }
-
+    @Transactional
     public TenantResponse deleteTenant(Long id) {
-        if(!tenantRepository.existsById(id)) {
-            throw new IllegalArgumentException("Tenant not found with id " + id);
+
+        Tenant tenant = tenantRepository.findByIdAndDeletedFalse(id);
+        if(tenant==null){
+            throw new ResourceNotFoundException("Tenant not found with id: "+id);
         }
-        Optional<Tenant> tenant = tenantRepository.findById(id);
-        tenantRepository.deleteById(id);
-        return new TenantResponse(tenant.get().getId(),tenant.get().getName());
+
+        tenant.setDeleted(true);
+        tenantRepository.save(tenant);
+        return new TenantResponse(tenant.getId(),tenant.getName());
     }
 }

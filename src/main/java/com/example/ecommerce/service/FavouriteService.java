@@ -4,6 +4,8 @@ import com.example.ecommerce.dto.ProductResponse;
 import com.example.ecommerce.entity.Favourite;
 import com.example.ecommerce.entity.Product;
 import com.example.ecommerce.entity.User;
+import com.example.ecommerce.exception.DuplicateResourceException;
+import com.example.ecommerce.exception.ResourceNotFoundException;
 import com.example.ecommerce.repository.FavouriteRepository;
 import com.example.ecommerce.repository.ProductRepository;
 import com.example.ecommerce.repository.UserRepository;
@@ -11,6 +13,7 @@ import com.example.ecommerce.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -30,17 +33,17 @@ public class FavouriteService {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
     }
-
+    @Transactional
     public void addFavourite(Authentication auth, Long productId) {
 
         User user = userRepository.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         if (favouriteRepository.existsByUserAndProduct(user, product)) {
-            throw new RuntimeException("Product is already in favourites");
+            throw new DuplicateResourceException("Product is already in favourites");
         }
 
         Favourite favourite = new Favourite();
@@ -50,26 +53,26 @@ public class FavouriteService {
 
         favouriteRepository.save(favourite);
     }
-
+    @Transactional
     public void removeFavourite(Authentication auth, Long productId) {
 
         User user = userRepository.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         Favourite favourite = favouriteRepository
                 .findByUserAndProduct(user, product)
-                .orElseThrow(() -> new RuntimeException("Product is not in favourites"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product is not in favourites"));
 
         favouriteRepository.delete(favourite);
     }
-
+    @Transactional
     public List<ProductResponse> getFavourites(Authentication auth) {
 
         User user = userRepository.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         List<Favourite> favourites =
                 favouriteRepository.findByUser(user);
@@ -79,28 +82,27 @@ public class FavouriteService {
         for (Favourite favourite : favourites) {
 
             Product product = favourite.getProduct();
-
-            ProductResponse response = new ProductResponse(
-                    product.getId(),
-                    product.getName(),
-                    product.getPrice(),
-                    product.getAvailableQuantity(),
-                    product.getCategory()
-            );
-
-            products.add(response);
+            if(!favourite.getProduct().isDeleted()){
+                ProductResponse response = new ProductResponse(
+                        product.getId(),
+                        product.getName(),
+                        product.getPrice(),
+                        product.getAvailableQuantity(),
+                        product.getCategory()
+                );
+                products.add(response);
+            }
         }
-
         return products;
     }
-
+    @Transactional
     public boolean isFavourite(Authentication auth, Long productId) {
 
         User user = userRepository.findByUsername(auth.getName())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         return favouriteRepository.existsByUserAndProduct(user, product);
     }

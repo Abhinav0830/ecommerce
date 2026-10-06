@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+
+
 @Getter
 @Setter
 @AllArgsConstructor
@@ -12,7 +14,7 @@ import lombok.Setter;
 public class ProductResponse {
     private long id;
     private String name;
-    private BigDecimal price;
+    private double price;
     private int availableQuantity;
     private String category;
 }
