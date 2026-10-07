@@ -1,10 +1,7 @@
 package com.example.ecommerce.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.stereotype.Service;
 
 @Getter
@@ -12,6 +9,7 @@ import org.springframework.stereotype.Service;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name = "Categories")
 public class Category {
     @Id

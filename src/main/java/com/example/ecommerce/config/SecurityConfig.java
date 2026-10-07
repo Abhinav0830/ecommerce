@@ -48,8 +48,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/public/**","/error").permitAll()
-
-                        .requestMatchers("/categories").hasAnyRole("USER","TENANT")
+                        .requestMatchers("/swagger-ui/**","/v3/api-docs/**").permitAll()
+                        .requestMatchers("/categories").hasAnyRole("USER","TENANT","ADMIN")
 
                         .requestMatchers("/products/**")
                         .hasAnyRole("USER", "TENANT","ADMIN")

@@ -49,7 +49,7 @@ public class OrderService {
         Optional<User> user = userRepository.findByUsername(username);
 
         if(user.isEmpty()){
-            throw new RuntimeException("User not Found");
+            throw new ResourceNotFoundException("User not Found");
         }
 
         Order order = new Order();

@@ -20,7 +20,7 @@ public class UserProductController {
         this.userProductService = userProductService;
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("/getProducts")
     public ResponseEntity<Page<ProductResponse>> getProducts(
             GetProductRequest request) {
 

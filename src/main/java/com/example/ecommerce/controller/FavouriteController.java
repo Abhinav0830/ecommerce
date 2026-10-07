@@ -49,7 +49,7 @@ public class FavouriteController {
         );
     }
 
-    @GetMapping("/get/{productId}")
+    @GetMapping("/isfavourite/{productId}")
     public ResponseEntity<Boolean> isFavourite(
             Authentication auth,
             @PathVariable Long productId) {

@@ -1,17 +1,12 @@
 package com.example.ecommerce.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.Cascade;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-
+import lombok.*;
 
 import java.util.List;
 
 @Entity
+@Builder
 @Getter
 @Setter
 @AllArgsConstructor

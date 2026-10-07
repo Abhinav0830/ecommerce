@@ -20,7 +20,7 @@ public class TenantUserController {
         this.tenantUserService = tenantUserService;
     }
 
-    @PostMapping("/{tenantName}/users")
+    @PostMapping("/{tenantName}/createuser")
     public ResponseEntity<String> createTenantUser(
             @PathVariable String tenantName,
             @Valid @RequestBody CreateTenantUserRequest request
@@ -42,7 +42,7 @@ public class TenantUserController {
         );
     }
 
-    @PutMapping("/{tenantName}/users/{userId}")
+    @DeleteMapping("/{tenantName}/deleteuser/{userId}")
     public ResponseEntity<String> deleteTenantUser(
             @PathVariable String tenantName,
             @PathVariable Long userId) {

@@ -4,15 +4,13 @@ package com.example.ecommerce.entity;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.List;
 
 @Entity
+@Builder
 @Getter
 @Setter
 @AllArgsConstructor
