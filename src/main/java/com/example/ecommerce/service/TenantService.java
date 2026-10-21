@@ -33,27 +33,31 @@ public class TenantService {
 
         Tenant saved = tenantRepository.save(tenant);
 
-        return new TenantResponse(saved.getId(),saved.getName());
+        return new TenantResponse(saved.getId(),saved.getName(), saved.isDeleted());
     }
     @Transactional
     public List<TenantResponse> getAllTenants(){
-        List<Tenant> tenants = tenantRepository.findByDeletedFalse();
+        List<Tenant> tenants = tenantRepository.findAll();
         List<TenantResponse> response = new ArrayList<>();
         for(Tenant tenant : tenants){
-            response.add(new TenantResponse(tenant.getId(),tenant.getName()));
+            response.add(new TenantResponse(tenant.getId(),tenant.getName(), tenant.isDeleted()));
         }
         return response;
     }
     @Transactional
     public TenantResponse deleteTenant(Long id) {
 
-        Tenant tenant = tenantRepository.findByIdAndDeletedFalse(id);
-        if(tenant==null){
+        Optional<Tenant> tenant = tenantRepository.findById(id);
+        if(tenant.isEmpty()){
             throw new ResourceNotFoundException("Tenant not found with id: "+id);
         }
-
-        tenant.setDeleted(true);
-        tenantRepository.save(tenant);
-        return new TenantResponse(tenant.getId(),tenant.getName());
+        if(tenant.get().isDeleted()){
+            tenant.get().setDeleted(false);
+        }
+        else{
+            tenant.get().setDeleted(true);
+        }
+        tenantRepository.save(tenant.get());
+        return new TenantResponse(tenant.get().getId(),tenant.get().getName(),tenant.get().isDeleted());
     }
 }

@@ -13,6 +13,7 @@ public interface TenantRepository extends JpaRepository<Tenant,Long> {
     Optional<Tenant> findByName(String tenantName);
 
     //Optional<Tenant> findByIdAndIsDeletedFalse(Long id);
+    //Tenant findById(Long id);
 
     Tenant findByIdAndDeletedFalse(Long id);
 
